@@ -1,48 +1,195 @@
-# OpenClaw
+# 🤖 OpenClaw
 
-## Introduction
-OpenClaw is an innovative open-source project aimed at simplifying the way users interact with and manipulate digital content. This project provides a robust framework for creating, managing, and sharing a wide array of digital resources, empowering users to take control of their digital environment.
+<div align="center">
 
-## Features
-### 1. **User-Friendly Interface**
-OpenClaw comes with a highly intuitive graphical user interface (GUI) that allows users of all skill levels to navigate the platform with ease. The layout is designed to facilitate quick access to the most frequently used features.
+### *An experimental AI chat application built for learning modern AI engineering.*
 
-### 2. **Content Management**
-With OpenClaw, users can easily organize their content. The content management system allows for:
-- **Create, Read, Update, Delete (CRUD) Operations:** Effortlessly manage your digital assets.
-- **Tagging and Categorization:** Assign tags and categories to make searching and organizing content simpler.
+![Status](https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge)
+![Node.js](https://img.shields.io/badge/Node.js-20+-green?style=for-the-badge\&logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge\&logo=typescript)
+![Express](https://img.shields.io/badge/Express.js-black?style=for-the-badge\&logo=express)
+![NVIDIA](https://img.shields.io/badge/NVIDIA-NIM-76B900?style=for-the-badge\&logo=nvidia)
 
-### 3. **Collaboration Tools**
-OpenClaw is built with collaboration in mind. It enables users to:
-- Share content with other users.
-- Collaborate in real-time on projects and documents.
-- Maintain version control to track changes and modifications.
+---
 
-### 4. **Extensibility**
-The platform is designed to be extensible, allowing developers to build plugins and extensions that add additional functionality to OpenClaw. This makes it adaptable to various use cases and workflows.
+### 🚀 Learning • Experimenting • Building
 
-### 5. **Integration with Other Tools**
-OpenClaw supports integration with a variety of external tools and services, allowing seamless data transfer and collaboration. Users can connect their favorite productivity tools to enhance their workflow.
+</div>
 
-### 6. **Security and Privacy**
-User data security is a top priority in OpenClaw. The project implements robust encryption and security measures to ensure that your data remains safe and private.
+---
 
-### 7. **Open Source**
-Being an open-source project, OpenClaw encourages community participation. Users can contribute to the development of the platform by reporting issues, suggesting features, or even contributing code.
+# 📖 About
 
-## Getting Started
-To get started with OpenClaw:
-1. **Clone the Repository:** Download the latest version of OpenClaw from the GitHub repository.
-2. **Install Dependencies:** Make sure to install all necessary dependencies outlined in the INSTALL.md file.
-3. **Run the Application:** Follow the instructions in the USAGE.md file to get the application running.
+OpenClaw is my personal AI engineering playground.
 
-## Contributing
-Contributions are welcome! Feel free to submit pull requests, report bugs, or suggest new features. Refer to the CONTRIBUTING.md file for guidelines.
+The goal of this repository is **not** to build a production chatbot immediately, but to understand how modern AI applications work under the hood.
 
+I'm building every feature from scratch while learning:
 
+* AI API integration
+* Streaming responses
+* Chat interfaces
+* Backend development
+* Agent architecture
+* Memory systems
 
-## Conclusion
-OpenClaw aims to revolutionize how users engage with digital content. With its powerful features, user-friendly design, and commitment to open-source principles, it is set to become an essential tool for individuals and organizations alike.
+Every commit represents another step in my AI engineering journey.
 
-## Author
+---
+
+# ✨ Current Features
+
+* ✅ AI Chat using NVIDIA NIM
+* ✅ TypeScript + Express backend
+* ✅ Streaming responses
+* ✅ Frontend chat interface
+* ✅ Environment variable support
+* ✅ Modular project structure
+* ✅ Conversation memory (experimental)
+
+---
+
+# 🛠 Tech Stack
+
+| Technology | Purpose           |
+| ---------- | ----------------- |
+| TypeScript | Backend language  |
+| Node.js    | Runtime           |
+| Express    | API server        |
+| NVIDIA NIM | AI inference      |
+| HTML       | Frontend          |
+| CSS        | Styling           |
+| JavaScript | Client-side logic |
+
+---
+
+# 📂 Project Structure
+
+```text
+OpenClaw/
+│
+├── public/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+│
+├── index.ts
+├── server.ts
+├── package.json
+├── tsconfig.json
+└── .env
+```
+
+---
+
+# 🚀 Getting Started
+
+## Clone the repository
+
+```bash
+git clone <your-repository-url>
+```
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Configure environment variables
+
+Create a `.env` file.
+
+```env
+NVIDIA_API_KEY=YOUR_API_KEY
+```
+
+## Run the server
+
+```bash
+npx tsx server.ts
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# 🎯 Learning Goals
+
+This project is helping me understand:
+
+* AI API integration
+* Streaming architecture
+* Prompt engineering
+* Context and memory
+* AI agents
+* Backend APIs
+* Full-stack development
+* Clean project architecture
+
+---
+
+# 📅 Roadmap
+
+### Completed
+
+* [x] Basic AI chat
+* [x] Streaming responses
+* [x] Express backend
+* [x] Frontend integration
+* [x] Experimental memory
+
+### Coming Next
+
+* [ ] Chat history
+* [ ] Markdown rendering
+* [ ] Code syntax highlighting
+* [ ] File upload
+* [ ] PDF chat
+* [ ] Tool calling
+* [ ] AI Agents
+* [ ] Authentication
+* [ ] MongoDB integration
+* [ ] Multi-agent workflows
+
+---
+
+# 📸 Preview
+
+> Screenshots and demos will be added as the project evolves.
+
+---
+
+# 🤝 Contributions
+
+This is primarily a learning project, but suggestions, ideas, and constructive feedback are always welcome.
+
+---
+
+# ⭐ Why this project?
+
+I believe the best way to learn AI engineering is by building real applications instead of only watching tutorials.
+
+OpenClaw is my place to experiment, make mistakes, improve, and document that journey.
+
+---
+
+<div align="center">
+
+### Thanks for visiting! ⭐
+
+If you find this project interesting, consider giving it a star.
+
+</div>
+
+---
+
+## 👨‍💻 Author
+
 **Yashu Singh**
+
+Engineering Student | AI Engineering Learner | Open Source Enthusiast

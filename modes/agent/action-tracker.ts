@@ -35,4 +35,8 @@ getPendingMutations():ActionLog[]{
     a.status = status;
     if (userApproved !== undefined) a.userApproved = userApproved;
   }
+
+  hasStagedChanges(): boolean {
+    return this.getPendingMutations().length > 0;
+  }
 }

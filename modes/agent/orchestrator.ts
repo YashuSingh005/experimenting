@@ -5,9 +5,10 @@ import { defaultAgentConfig } from "./types";
 import { ActionTracker } from "./action-tracker";
 import { ToolExecutor } from "./tool-executor";
 import { createAgentTools } from "./agent-tools";
-import { stepCountIs, ToolLoopAgent } from "ai";
+import { stepCountIs, streamText } from "ai";
 import { getAgentModel } from "../../ai";
 import { renderTerminalMarkdown } from "../../tui/terminal-md";
+import { getMemoryManager, buildAgentContext, addUserMessage, addAssistantMessage, handleMemoryCommands, persistMemory } from "../../memory/manager.ts";
 
 import { runApprovalFlow } from "./approvals";
 
@@ -20,14 +21,8 @@ export async function runAgentMode() {
   const executor = new ToolExecutor(tracker, config);
   const tools = createAgentTools(executor);
 
-  const agent = new ToolLoopAgent({
-    model: getAgentModel(),
-    stopWhen: stepCountIs(40),
-    instructions: [
-      `Workspace root: ${config.codebasePath}`,
-      "All mutations are staged until approval.",
-    ].join("\n"),
-    tools,
+  const memoryManager = await getMemoryManager(undefined, { 
+    enableVectorStore: !!process.env.OPENAI_API_KEY 
   });
 
   while (true) {
@@ -51,12 +46,29 @@ export async function runAgentMode() {
       input.toLowerCase() === "quit"
     ) {
       console.log(chalk.yellow("\nLeaving Agent Mode...\n"));
+      await persistMemory(memoryManager);
       break;
     }
 
+    const memoryResult = await handleMemoryCommands(memoryManager, input);
+    if (!memoryResult.shouldContinue) {
+      if (memoryResult.response) {
+        console.log(chalk.cyan(memoryResult.response));
+      }
+      await persistMemory(memoryManager);
+      continue;
+    }
+
     try {
-      const result = await agent.generate({
+      const systemPrompt = await buildAgentContext(memoryManager, input);
+
+      let fullText = "";
+      const { textStream } = await streamText({
+        model: getAgentModel(),
+        system: systemPrompt,
+        tools,
         prompt: input,
+        stopWhen: stepCountIs(40),
         onStepFinish: ({ toolCalls }) => {
           for (const tc of toolCalls) {
             const preview = JSON.stringify(tc.input).slice(0, 160);
@@ -72,8 +84,24 @@ export async function runAgentMode() {
         },
       });
 
-      if (result.text?.trim()) {
-        console.log(renderTerminalMarkdown(result.text));
+      for await (const chunk of textStream) {
+        process.stdout.write(chunk);
+        fullText += chunk;
+      }
+      console.log();
+
+      // Streaming already printed the text; render markdown for formatting if needed
+      // if (fullText.trim()) {
+      //   console.log(renderTerminalMarkdown(fullText));
+      // }
+
+      await addUserMessage(memoryManager, input);
+      await addAssistantMessage(memoryManager, fullText);
+
+      // Only run approval flow if tools made changes
+      const hasStagedChanges = tracker.hasStagedChanges?.() ?? false;
+      if (!hasStagedChanges) {
+        continue;
       }
 
       const ok = await runApprovalFlow(tracker);
