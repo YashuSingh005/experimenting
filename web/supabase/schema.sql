@@ -143,27 +143,32 @@ create trigger update_settings_updated_at
 -- 4.1 Profiles
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can view own profile" on public.profiles;
 create policy "Users can view own profile"
   on public.profiles for select
   using (auth.uid() = id);
 
+drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile"
   on public.profiles for update
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+drop policy if exists "Admins can view all profiles" on public.profiles;
 create policy "Admins can view all profiles"
   on public.profiles for select
   using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Admins can update any profile" on public.profiles;
 create policy "Admins can update any profile"
   on public.profiles for update
   using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Admins can delete profiles" on public.profiles;
 create policy "Admins can delete profiles"
   on public.profiles for delete
   using (
@@ -173,28 +178,34 @@ create policy "Admins can delete profiles"
 -- 4.2 Chat Sessions
 alter table public.chat_sessions enable row level security;
 
+drop policy if exists "Users can view own chats" on public.chat_sessions;
 create policy "Users can view own chats"
   on public.chat_sessions for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can create own chats" on public.chat_sessions;
 create policy "Users can create own chats"
   on public.chat_sessions for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update own chats" on public.chat_sessions;
 create policy "Users can update own chats"
   on public.chat_sessions for update
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete own chats" on public.chat_sessions;
 create policy "Users can delete own chats"
   on public.chat_sessions for delete
   using (auth.uid() = user_id);
 
+drop policy if exists "Admins can view all chats" on public.chat_sessions;
 create policy "Admins can view all chats"
   on public.chat_sessions for select
   using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Admins can delete any chat" on public.chat_sessions;
 create policy "Admins can delete any chat"
   on public.chat_sessions for delete
   using (
@@ -204,6 +215,7 @@ create policy "Admins can delete any chat"
 -- 4.3 Messages
 alter table public.messages enable row level security;
 
+drop policy if exists "Users can view own messages" on public.messages;
 create policy "Users can view own messages"
   on public.messages for select
   using (
@@ -214,6 +226,7 @@ create policy "Users can view own messages"
     )
   );
 
+drop policy if exists "Users can create messages in own chats" on public.messages;
 create policy "Users can create messages in own chats"
   on public.messages for insert
   with check (
@@ -224,6 +237,7 @@ create policy "Users can create messages in own chats"
     )
   );
 
+drop policy if exists "Users can delete own messages" on public.messages;
 create policy "Users can delete own messages"
   on public.messages for delete
   using (
@@ -234,12 +248,14 @@ create policy "Users can delete own messages"
     )
   );
 
+drop policy if exists "Admins can view all messages" on public.messages;
 create policy "Admins can view all messages"
   on public.messages for select
   using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Admins can delete any message" on public.messages;
 create policy "Admins can delete any message"
   on public.messages for delete
   using (
@@ -249,16 +265,19 @@ create policy "Admins can delete any message"
 -- 4.4 Settings
 alter table public.settings enable row level security;
 
+drop policy if exists "Anyone can view settings" on public.settings;
 create policy "Anyone can view settings"
   on public.settings for select
   using (true);
 
-create policy "Only admins can update settings"
+drop policy if exists "Only admins can insert settings" on public.settings;
+create policy "Only admins can insert settings"
   on public.settings for insert
   with check (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Only admins can update settings" on public.settings;
 create policy "Only admins can update settings"
   on public.settings for update
   using (
@@ -268,12 +287,14 @@ create policy "Only admins can update settings"
 -- 4.5 Logs
 alter table public.logs enable row level security;
 
+drop policy if exists "Only admins can view logs" on public.logs;
 create policy "Only admins can view logs"
   on public.logs for select
   using (
     exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
   );
 
+drop policy if exists "Service can insert logs" on public.logs;
 create policy "Service can insert logs"
   on public.logs for insert
   with check (true);
