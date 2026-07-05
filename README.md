@@ -1,8 +1,6 @@
 <div align="center">
   <br />
-  <a href="#">
-    <img src="public/icons/icon-512x512.png" alt="Yashu" width="120" height="120" style="border-radius: 12px;">
-  </a>
+
   <br />
   <br />
   <h1>Yashu</h1>
