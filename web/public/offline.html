@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Offline — Yashu</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #0A0A0A;
+      color: #E0E0E0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 1.5rem;
+    }
+    .container {
+      text-align: center;
+      max-width: 24rem;
+    }
+    .icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.625rem;
+      background: hsl(239 84% 67%);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      user-select: none;
+    }
+    h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #F0F0F0;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      font-size: 0.875rem;
+      color: #888;
+      line-height: 1.6;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon" aria-hidden="true">Y</div>
+    <h1>You're offline</h1>
+    <p>Check your connection and try again.</p>
+  </div>
+</body>
+</html>
