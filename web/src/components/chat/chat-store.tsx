@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
 import toast from "react-hot-toast";
 import { generateId } from "@/lib/utils";
+import type { AgentStatus, AgentCommMessage, SubtaskInfo } from "@/types/chat";
 
 interface Message {
   id: string;
@@ -17,11 +18,21 @@ interface ChatSession {
   created_at: string;
 }
 
+export interface AgentActivity {
+  type: "agent_status" | "agent_comms" | "decomposition";
+  timestamp: string;
+  status?: AgentStatus;
+  comms?: AgentCommMessage;
+  task?: string;
+  subtasks?: SubtaskInfo[];
+}
+
 interface ChatContextType {
   sessions: ChatSession[];
   currentChatId: string | null;
   messages: Message[];
   streaming: boolean;
+  agentActivities: AgentActivity[];
   setSessions: (sessions: ChatSession[]) => void;
   setCurrentChatId: (id: string | null) => void;
   setMessages: (messages: Message[]) => void;
@@ -32,6 +43,7 @@ interface ChatContextType {
   deleteChat: (id: string) => Promise<void>;
   newChat: () => void;
   streamingContent: string;
+  clearAgentActivities: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -42,6 +54,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const [agentActivities, setAgentActivities] = useState<AgentActivity[]>([]);
   const abortRef = useRef<AbortController | null>(null);
 
   const addMessage = useCallback((msg: Message) => {
@@ -65,6 +78,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setStreaming(false);
   }, []);
 
+  const clearAgentActivities = useCallback(() => {
+    setAgentActivities([]);
+  }, []);
+
   const sendMessage = useCallback(
     async (content: string) => {
       if (!content.trim() || streaming) return;
@@ -82,6 +99,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       addMessage(userMsg);
       setStreaming(true);
       setStreamingContent("");
+      setAgentActivities([]);
 
       const assistantId = generateId();
       const assistantMsg: Message = {
@@ -126,21 +144,58 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             if (!line.startsWith("data: ")) continue;
             try {
               const data = JSON.parse(line.slice(6));
-              if (data.type === "text") {
-                appendToLastMessage(data.content);
-                setStreamingContent((prev) => prev + data.content);
-              } else if (data.type === "done") {
-                if (data.chatId && !currentChatId) {
-                  setCurrentChatId(data.chatId);
-                  const res2 = await fetch("/api/history");
-                  if (res2.ok) {
-                    const json = await res2.json();
-                    setSessions(json.sessions ?? []);
+              switch (data.type) {
+                case "text":
+                  appendToLastMessage(data.content);
+                  setStreamingContent((prev) => prev + data.content);
+                  break;
+                case "agent_status":
+                  setAgentActivities((prev) => [
+                    ...prev,
+                    {
+                      type: "agent_status",
+                      timestamp: new Date().toISOString(),
+                      status: data,
+                    },
+                  ]);
+                  break;
+                case "agent_comms":
+                  setAgentActivities((prev) => [
+                    ...prev,
+                    {
+                      type: "agent_comms",
+                      timestamp: new Date().toISOString(),
+                      comms: data,
+                    },
+                  ]);
+                  break;
+                case "decomposition":
+                  setAgentActivities((prev) => [
+                    ...prev,
+                    {
+                      type: "decomposition",
+                      timestamp: new Date().toISOString(),
+                      task: data.task,
+                      subtasks: data.subtasks,
+                    },
+                  ]);
+                  break;
+                case "agent_result":
+                  break;
+                case "done":
+                  if (data.chatId && !currentChatId) {
+                    setCurrentChatId(data.chatId);
+                    const res2 = await fetch("/api/history");
+                    if (res2.ok) {
+                      const json = await res2.json();
+                      setSessions(json.sessions ?? []);
+                    }
                   }
-                }
-              } else if (data.type === "error") {
-                console.error("Stream error:", data.content);
-                toast.error(data.content || "An error occurred during streaming");
+                  break;
+                case "error":
+                  console.error("Stream error:", data.content);
+                  toast.error(data.content || "An error occurred during streaming");
+                  break;
               }
             } catch {
               // skip parse errors
@@ -179,6 +234,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const newChat = useCallback(() => {
     setCurrentChatId(null);
     setMessages([]);
+    setAgentActivities([]);
   }, []);
 
   return (
@@ -189,6 +245,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         messages,
         streaming,
         streamingContent,
+        agentActivities,
         setSessions,
         setCurrentChatId,
         setMessages,
@@ -198,6 +255,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         stopStreaming,
         deleteChat,
         newChat,
+        clearAgentActivities,
       }}
     >
       {children}

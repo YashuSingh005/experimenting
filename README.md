@@ -21,10 +21,13 @@
 ## ✨ Features
 
 - **AI Chat** — Conversational interface powered by OpenRouter + AI SDK
-- **Admin Panel** — Manage chats, files, users, logs, settings, terminal
+- **Multi-Agent Orchestrator** — Complex tasks are decomposed into sub-tasks managed by specialized agents with inter-agent communication
+- **Agent Visualizer** — Real-time floating panel shows agent status, decomposition, and communication during chat
+- **Admin Panel** — Manage chats, files, users, logs, settings, terminal with user info sidebar
 - **Supabase Auth** — Email/password authentication with SSR
-- **PWA** — Installable on Android/iOS, offline fallback, auto-update with user control
+- **PWA** — Installable on Android/iOS, offline fallback, auto-update with user control, install button on auth pages
 - **Dark Theme** — Near-black (#0A0A0A) UI with indigo accent, responsive down to mobile
+- **Typewriter Landing** — Landing page features animated code-sample typewriter with infinite loop
 
 ---
 
@@ -90,11 +93,16 @@ src/
 │   └── register/         # User registration
 ├── components/
 │   ├── auth/             # Login/register forms
-│   ├── chat/             # Chat input, sidebar, messages
+│   ├── chat/             # Chat input, sidebar, messages, agent-visualizer
 │   ├── layout/           # Admin sidebar
 │   └── ui/               # shadcn/ui base components
 ├── hooks/                # use-auth, useServiceWorkerUpdate
-├── lib/                  # Supabase clients, AI bridge, utils
+├── lib/
+│   ├── ai/
+│   │   ├── orchestrator/ # Multi-agent system (manager, sub-agent, bus, types)
+│   │   ├── bridge.ts     # AI streaming bridge
+│   │   └── tools.ts      # Agent tool definitions
+│   └── supabase/         # Supabase clients
 ├── middleware/            # Auth & admin middleware
 ├── services/             # Chat, file, log, settings, etc.
 ├── styles/               # Global CSS with theme variables

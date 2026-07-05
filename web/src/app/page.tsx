@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Typewriter } from "@/components/Typewriter";
 
 export default function LandingPage() {
   return (
@@ -60,7 +61,7 @@ export default function LandingPage() {
             <div className="mx-auto max-w-sm rounded-md border border-border bg-card p-3">
               <div className="flex items-center gap-2 border-b border-border pb-2">
                 <span className="text-xs font-mono text-muted-foreground">$</span>
-                <span className="text-xs font-mono text-foreground/80">./assistant --help</span>
+                <span className="text-xs font-mono text-foreground/80"><Typewriter /></span>
               </div>
               <pre className="mt-2 text-left text-xs leading-relaxed text-muted-foreground font-mono">
 {`usage: assistant [command]

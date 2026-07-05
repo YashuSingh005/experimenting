@@ -18,8 +18,9 @@ import {
   ChevronRight,
   Menu,
   X,
+  User,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const sidebarLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +37,26 @@ export function AdminSidebar() {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+    role: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserInfo({
+          name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "User",
+          email: user.email ?? "",
+          role: "admin",
+        });
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -77,6 +98,28 @@ export function AdminSidebar() {
           )}
         </button>
       </div>
+
+      {/* User info */}
+      {userInfo && !collapsed && (
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <User className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">
+                {userInfo.name}
+              </p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {userInfo.email}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-mono font-medium text-primary">
+              admin
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">

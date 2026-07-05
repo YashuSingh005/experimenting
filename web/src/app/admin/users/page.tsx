@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,14 +25,13 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     try {
-      const supabase = createAdminClient();
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setUsers(data ?? []);
+      const res = await fetch("/api/admin/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data ?? []);
+      }
     } catch {
-      // Admin client might not be available
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -46,12 +44,14 @@ export default function AdminUsersPage() {
   const deleteUser = async (id: string, email: string) => {
     if (!confirm(`Delete user ${email}? This cannot be undone.`)) return;
     try {
-      const supabase = createAdminClient();
-      await supabase.from("messages").delete().eq("chat_id", id);
-      await supabase.from("chat_sessions").delete().eq("user_id", id);
-      await supabase.from("profiles").delete().eq("id", id);
-      toast.success("User deleted");
-      loadUsers();
+      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("User deleted");
+        loadUsers();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Failed to delete user");
+      }
     } catch {
       toast.error("Failed to delete user");
     }
@@ -60,13 +60,18 @@ export default function AdminUsersPage() {
   const toggleAdmin = async (id: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "user" : "admin";
     try {
-      const supabase = createAdminClient();
-      await supabase
-        .from("profiles")
-        .update({ role: newRole })
-        .eq("id", id);
-      toast.success(`User is now ${newRole}`);
-      loadUsers();
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (res.ok) {
+        toast.success(`User is now ${newRole}`);
+        loadUsers();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Failed to update role");
+      }
     } catch {
       toast.error("Failed to update role");
     }
@@ -166,7 +171,7 @@ export default function AdminUsersPage() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    No users found
+                    {loading ? "Loading..." : "No users found"}
                   </td>
                 </tr>
               )}

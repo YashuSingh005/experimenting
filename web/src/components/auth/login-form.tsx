@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { PwaInstallButton } from "@/components/PwaInstallButton";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -41,6 +42,7 @@ export function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
+      <PwaInstallButton />
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

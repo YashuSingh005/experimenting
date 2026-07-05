@@ -61,7 +61,7 @@ export function ChatMessage({ role, content, isStreaming }: MessageProps) {
           )}
         </div>
 
-        <div className="prose prose-invert max-w-none text-sm leading-relaxed text-foreground/85">
+        <div className="prose prose-invert max-w-none text-sm leading-relaxed text-foreground/85 min-w-0 overflow-hidden">
           {role === "assistant" && !content && isStreaming ? null : (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}

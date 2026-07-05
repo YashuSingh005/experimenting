@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { formatDateTime, truncate } from "@/lib/utils";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, Search, Trash2, Eye, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -23,26 +21,19 @@ export default function AdminChatsPage() {
   const [search, setSearch] = useState("");
   const [selectedChat, setSelectedChat] = useState<ChatWithUser | null>(null);
   const [messages, setMessages] = useState<{ role: string; content: string; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadChats = async () => {
     try {
-      const supabase = createAdminClient();
-      const { data } = await supabase
-        .from("chat_sessions")
-        .select("*, profiles!inner(name, email)")
-        .order("created_at", { ascending: false })
-        .limit(100);
-
-      const mapped = (data ?? []).map((c) => ({
-        id: c.id,
-        title: c.title,
-        user_id: c.user_id,
-        created_at: c.created_at,
-        user_name: (c as unknown as { profiles: { name: string; email: string } }).profiles?.name,
-        user_email: (c as unknown as { profiles: { name: string; email: string } }).profiles?.email,
-      }));
-      setChats(mapped);
-    } catch {}
+      const res = await fetch("/api/admin/chats");
+      if (res.ok) {
+        setChats(await res.json());
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -52,24 +43,28 @@ export default function AdminChatsPage() {
   const viewChat = async (chat: ChatWithUser) => {
     setSelectedChat(chat);
     try {
-      const supabase = createAdminClient();
-      const { data } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("chat_id", chat.id)
-        .order("created_at", { ascending: true });
-      setMessages(data ?? []);
-    } catch {}
+      const res = await fetch(`/api/admin/chats/${chat.id}`);
+      if (res.ok) {
+        setMessages(await res.json());
+      } else {
+        setMessages([]);
+      }
+    } catch {
+      setMessages([]);
+    }
   };
 
   const deleteChat = async (id: string) => {
     if (!confirm("Delete this conversation?")) return;
     try {
-      const supabase = createAdminClient();
-      await supabase.from("messages").delete().eq("chat_id", id);
-      await supabase.from("chat_sessions").delete().eq("id", id);
-      toast.success("Conversation deleted");
-      loadChats();
+      const res = await fetch(`/api/admin/chats?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Conversation deleted");
+        setSelectedChat(null);
+        loadChats();
+      } else {
+        toast.error("Failed to delete");
+      }
     } catch {
       toast.error("Failed to delete");
     }
@@ -133,13 +128,15 @@ export default function AdminChatsPage() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">No chats found</div>
+            <div className="p-8 text-center text-muted-foreground">
+              {loading ? "Loading..." : "No chats found"}
+            </div>
           )}
         </div>
 
         {/* Message viewer */}
         {selectedChat ? (
-        <div className="rounded-md border border-border bg-card overflow-hidden max-h-[70vh] overflow-y-auto">
+          <div className="rounded-md border border-border bg-card overflow-hidden max-h-[70vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-white">

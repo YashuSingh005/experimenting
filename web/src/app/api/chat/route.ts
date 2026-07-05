@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { type NextRequest } from "next/server";
 import { getSession } from "@/middleware/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { streamAIResponse } from "@/lib/ai/bridge";
+import { runOrchestrator } from "@/lib/ai/orchestrator";
 import { chatService } from "@/services/chat-service";
 import { generateId } from "@/lib/utils";
 
@@ -72,20 +72,32 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         let fullResponse = "";
 
+        const enqueue = (data: unknown) => {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+          );
+        };
+
         try {
-          await streamAIResponse(aiMessages, role, {
+          await runOrchestrator(aiMessages, role, {
             onText: (chunk) => {
               fullResponse += chunk;
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: "text", content: chunk })}\n\n`),
-              );
+              enqueue({ type: "text", content: chunk });
             },
             onToolCall: (toolName, input) => {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ type: "tool_call", toolName, input })}\n\n`,
-                ),
-              );
+              enqueue({ type: "tool_call", toolName, input });
+            },
+            onAgentStatus: (status) => {
+              enqueue({ type: "agent_status", ...status });
+            },
+            onAgentComms: (comms) => {
+              enqueue({ type: "agent_comms", from: comms.from, to: comms.to, message: comms.message });
+            },
+            onDecomposition: (task, subtasks) => {
+              enqueue({ type: "decomposition", task, subtasks });
+            },
+            onAgentResult: (agentId, result) => {
+              enqueue({ type: "agent_result", agentId, result });
             },
             onFinish: async () => {
               if (fullResponse.trim()) {
@@ -102,25 +114,17 @@ export async function POST(request: NextRequest) {
                 }
               }
 
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: "done", chatId })}\n\n`),
-              );
+              enqueue({ type: "done", chatId });
               controller.close();
             },
             onError: (error) => {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ type: "error", content: error.message })}\n\n`,
-                ),
-              );
+              enqueue({ type: "error", content: error.message });
               controller.close();
             },
           });
         } catch (error) {
           const msg = error instanceof Error ? error.message : "Unknown error";
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: "error", content: msg })}\n\n`),
-          );
+          enqueue({ type: "error", content: msg });
           controller.close();
         }
       },
