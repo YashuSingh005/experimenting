@@ -10,9 +10,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         position="top-center"
         toastOptions={{
           style: {
-            background: "hsl(0 0% 6%)",
-            color: "hsl(0 0% 95%)",
-            border: "1px solid hsl(240 3.7% 12%)",
+            background: "hsl(0 0% 4%)",
+            color: "hsl(0 0% 88%)",
+            border: "1px solid hsl(0 0% 9%)",
+            borderRadius: "0.375rem",
+            fontSize: "0.8125rem",
+            fontFamily: "ui-monospace, monospace",
           },
         }}
       />

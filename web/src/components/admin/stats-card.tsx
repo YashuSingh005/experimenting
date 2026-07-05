@@ -20,10 +20,10 @@ export function StatsCard({
 }: StatsCardProps) {
   if (loading) {
     return (
-      <div className="glass rounded-xl border border-white/5 p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 w-24 rounded bg-white/10" />
-          <div className="h-8 w-32 rounded bg-white/10" />
+      <div className="rounded-md border border-border bg-card p-4">
+        <div className="animate-pulse space-y-3">
+          <div className="h-3 w-20 rounded bg-muted" />
+          <div className="h-6 w-28 rounded bg-muted" />
         </div>
       </div>
     );
@@ -31,19 +31,24 @@ export function StatsCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
       className={cn(
-        "glass rounded-xl border border-white/5 p-6 transition-all duration-300 hover:border-white/10",
+        "rounded-md border border-border bg-card p-4 transition-all hover:border-muted-foreground/20",
         className,
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <div className="text-3xl font-bold text-white">{value}</div>
+        <div className="space-y-1">
+          <p className="font-mono text-xs text-muted-foreground">{title}</p>
+          <div className="font-mono text-xl font-semibold text-foreground">
+            {value}
+          </div>
         </div>
-        <div className="rounded-lg bg-primary/10 p-3 text-primary">{icon}</div>
+        <div className="rounded-md bg-primary/10 p-2 text-primary">
+          {icon}
+        </div>
       </div>
     </motion.div>
   );

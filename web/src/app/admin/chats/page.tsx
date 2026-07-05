@@ -108,11 +108,11 @@ export default function AdminChatsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Chat list */}
-        <div className="glass rounded-xl border border-white/5 overflow-hidden max-h-[70vh] overflow-y-auto">
+        <div className="rounded-md border border-border bg-card overflow-hidden max-h-[70vh] overflow-y-auto">
           {filtered.map((chat) => (
             <div
               key={chat.id}
-              className="flex items-center gap-3 border-b border-white/5 px-4 py-3 hover:bg-white/[0.02] cursor-pointer transition-colors"
+              className="flex items-center gap-3 border-b border-border px-4 py-3 hover:bg-white/[0.02] cursor-pointer transition-colors"
               onClick={() => viewChat(chat)}
             >
               <MessageSquare className="h-5 w-5 shrink-0 text-muted-foreground" />
@@ -139,8 +139,8 @@ export default function AdminChatsPage() {
 
         {/* Message viewer */}
         {selectedChat ? (
-          <div className="glass rounded-xl border border-white/5 overflow-hidden max-h-[70vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+        <div className="rounded-md border border-border bg-card overflow-hidden max-h-[70vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-white">
                   {truncate(selectedChat.title, 50)}

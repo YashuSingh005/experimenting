@@ -89,7 +89,7 @@ export default function AdminSettingsPage() {
         </p>
       </motion.div>
 
-      <Card className="glass">
+      <Card>
         <CardHeader>
           <CardTitle>Model Configuration</CardTitle>
           <CardDescription>
@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
             }
           />
 
-          <Button onClick={save} disabled={saving} variant="gradient">
+          <Button onClick={save} disabled={saving} variant="default">
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

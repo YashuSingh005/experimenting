@@ -7,14 +7,7 @@ import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export function LoginForm() {
@@ -25,125 +18,83 @@ export function LoginForm() {
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      createClient();
-      setReady(true);
-    } catch {
-      // Supabase not configured — will redirect to setup
-    }
+    try { createClient(); setReady(true); } catch { /* not configured */ }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ready) return;
     setLoading(true);
-
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
-      toast.success("Welcome back!");
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { toast.error(error.message); return; }
+      toast.success("logged in");
       router.push("/chat");
       router.refresh();
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error("something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full bg-purple-500/10 blur-[120px]" />
-      </div>
-
+    <div className="flex min-h-screen items-center justify-center bg-black px-4">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md px-4"
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-sm"
       >
         <div className="mb-8 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          >
-            <Sparkles className="mx-auto h-12 w-12 text-primary" />
-          </motion.div>
-          <h1 className="mt-4 gradient-text text-3xl font-bold">Welcome Back</h1>
-          <p className="mt-2 text-muted-foreground">
-            Sign in to continue with YASHU AI
-          </p>
+          <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+            <span className="font-mono text-xs text-muted-foreground">sign in</span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground">welcome back</h1>
+          <p className="mt-1 text-sm text-muted-foreground">enter your credentials</p>
         </div>
 
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                label="Email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-              <Input
-                label="Password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+        <form onSubmit={handleLogin} className="space-y-4">
+          <Input
+            label="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+          <Input
+            label="password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={loading || !ready}
+          >
+            {loading ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> signing in...</>
+            ) : (
+              "sign in"
+            )}
+          </Button>
+        </form>
 
-              <Button
-                type="submit"
-                className="w-full"
-                variant="gradient"
-                size="lg"
-                disabled={loading || !ready}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/register"
-                className="font-medium text-primary hover:underline"
-              >
-                Create one
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          no account?{" "}
+          <Link href="/register" className="text-primary hover:underline">
+            create one
+          </Link>
+        </p>
       </motion.div>
     </div>
   );

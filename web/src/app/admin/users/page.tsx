@@ -102,11 +102,11 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="glass rounded-xl border border-white/5 overflow-hidden">
+      <div className="rounded-md border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/5">
+              <tr className="border-b border-border">
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">User</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Role</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Status</th>
@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {filtered.map((user) => (
-                <tr key={user.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                <tr key={user.id} className="border-b border-border hover:bg-white/[0.02]">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">

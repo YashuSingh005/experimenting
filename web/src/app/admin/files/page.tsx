@@ -112,7 +112,7 @@ export default function AdminFilesPage() {
           )}
         </div>
         {item.type === "directory" && expanded.has(item.path) && item.children && (
-          <div className="border-l border-white/5 ml-3">
+          <div className="border-l border-border ml-3">
             {renderTree(item.children, depth + 1)}
           </div>
         )}
@@ -149,7 +149,7 @@ export default function AdminFilesPage() {
       </motion.div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="glass rounded-xl border border-white/5 p-4 max-h-[70vh] overflow-y-auto">
+        <div className="rounded-md border border-border bg-card p-4 max-h-[70vh] overflow-y-auto">
           {loading ? (
             <div className="flex h-32 items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -159,7 +159,7 @@ export default function AdminFilesPage() {
           )}
         </div>
 
-        <div className="glass rounded-xl border border-white/5 p-4 max-h-[70vh] overflow-y-auto">
+        <div className="rounded-md border border-border bg-card p-4 max-h-[70vh] overflow-y-auto">
           {fileContent ? (
             <div>
               <div className="mb-3 flex items-center justify-between">

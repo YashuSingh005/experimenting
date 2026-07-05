@@ -29,5 +29,13 @@ export async function getSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { user, supabase, supabaseResponse };
+  let accessToken: string | null = null;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    accessToken = sessionData.session?.access_token ?? null;
+  } catch {
+    // token not available
+  }
+
+  return { user, supabase, supabaseResponse, accessToken };
 }

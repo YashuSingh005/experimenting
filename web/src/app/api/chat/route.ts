@@ -7,20 +7,37 @@ import { chatService } from "@/services/chat-service";
 import { generateId } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
-  const { user } = await getSession(request);
+  let user;
+  try {
+    const session = await getSession(request);
+    user = session.user;
+  } catch (error) {
+    console.error("[/api/chat] getSession error:", error);
+    return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
+  }
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const adminClient = createAdminClient();
-  const { data: profile } = await adminClient
+  const adminSupabase = createAdminClient();
+
+  let role: "user" | "admin" = "user";
+  const { data: profile } = await adminSupabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single();
-
-  const role = profile?.role ?? "user";
+    .maybeSingle();
+  if (!profile) {
+    await adminSupabase.from("profiles").insert({
+      id: user.id,
+      name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "User",
+      email: user.email ?? "unknown@unknown.com",
+      role: "user",
+    });
+  } else {
+    role = (profile.role as "user" | "admin") ?? "user";
+  }
 
   try {
     const body = await request.json();
@@ -31,20 +48,20 @@ export async function POST(request: NextRequest) {
     }
 
     const chatId = existingChatId || generateId();
-    let title = message.slice(0, 100);
+    const title = message.slice(0, 100);
 
     if (!existingChatId) {
-      await chatService.createSession(user.id, title);
+      await chatService.createSession(chatId, user.id, title, adminSupabase);
     }
 
-    const userMessage = await chatService.saveMessage({
+    await chatService.saveMessage({
       id: generateId(),
       chat_id: chatId,
       role: "user",
       content: message,
-    });
+    }, adminSupabase);
 
-    const history = await chatService.getMessages(chatId);
+    const history = await chatService.getMessages(chatId, adminSupabase);
     const aiMessages = history.map((m) => ({
       role: m.role as "user" | "assistant" | "system",
       content: m.content,
@@ -77,11 +94,11 @@ export async function POST(request: NextRequest) {
                   chat_id: chatId,
                   role: "assistant",
                   content: fullResponse,
-                });
+                }, adminSupabase);
 
                 if (fullResponse.length > 10 && !existingChatId) {
                   const newTitle = fullResponse.slice(0, 100).replace(/\n/g, " ").trim();
-                  await chatService.updateSessionTitle(chatId, newTitle).catch(() => {});
+                  await chatService.updateSessionTitle(chatId, newTitle, adminSupabase).catch(() => {});
                 }
               }
 
@@ -117,9 +134,13 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 },
-    );
+    console.error("[/api/chat] handler error:", error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" && error !== null && "message" in error
+          ? String((error as Record<string, unknown>).message)
+          : JSON.stringify(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

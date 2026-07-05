@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supabase = createAdminClient();
+
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get("chatId");
-
-  const supabase = createAdminClient();
 
   if (chatId) {
     const { data: messages } = await supabase
@@ -42,6 +42,8 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const supabase = createAdminClient();
+
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get("chatId");
 
@@ -49,7 +51,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "chatId required" }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
   const { error } = await supabase
     .from("chat_sessions")
     .delete()

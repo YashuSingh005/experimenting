@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import toast from "react-hot-toast";
 import { generateId } from "@/lib/utils";
 
 interface Message {
@@ -103,7 +104,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         });
 
         if (!res.ok) {
-          throw new Error("Failed to send message");
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error || `Request failed (${res.status})`);
         }
 
         const reader = res.body?.getReader();
@@ -138,6 +140,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 }
               } else if (data.type === "error") {
                 console.error("Stream error:", data.content);
+                toast.error(data.content || "An error occurred during streaming");
               }
             } catch {
               // skip parse errors
@@ -147,6 +150,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           console.error("Chat error:", error);
+          toast.error(error instanceof Error ? error.message : "Failed to send message");
         }
       } finally {
         setStreaming(false);

@@ -1,13 +1,19 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ChatSession, Message } from "@/types";
-import { generateId } from "@/lib/utils";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+type DBClient = SupabaseClient;
 
 export class ChatService {
-  async createSession(userId: string, title: string): Promise<ChatSession> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+  private resolveClient(supabase?: DBClient): DBClient {
+    return supabase ?? createAdminClient();
+  }
+
+  async createSession(id: string, userId: string, title: string, supabase?: DBClient): Promise<ChatSession> {
+    const s = this.resolveClient(supabase);
+    const { data, error } = await s
       .from("chat_sessions")
-      .insert({ user_id: userId, title })
+      .insert({ id, user_id: userId, title })
       .select()
       .single();
 
@@ -15,9 +21,9 @@ export class ChatService {
     return data;
   }
 
-  async getSessions(userId: string): Promise<ChatSession[]> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+  async getSessions(userId: string, supabase?: DBClient): Promise<ChatSession[]> {
+    const s = this.resolveClient(supabase);
+    const { data, error } = await s
       .from("chat_sessions")
       .select("*")
       .eq("user_id", userId)
@@ -27,9 +33,9 @@ export class ChatService {
     return data ?? [];
   }
 
-  async getSession(sessionId: string): Promise<ChatSession | null> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+  async getSession(sessionId: string, supabase?: DBClient): Promise<ChatSession | null> {
+    const s = this.resolveClient(supabase);
+    const { data, error } = await s
       .from("chat_sessions")
       .select("*")
       .eq("id", sessionId)
@@ -39,9 +45,9 @@ export class ChatService {
     return data;
   }
 
-  async deleteSession(sessionId: string, userId?: string): Promise<void> {
-    const supabase = createAdminClient();
-    let query = supabase.from("chat_sessions").delete().eq("id", sessionId);
+  async deleteSession(sessionId: string, userId?: string, supabase?: DBClient): Promise<void> {
+    const s = this.resolveClient(supabase);
+    let query = s.from("chat_sessions").delete().eq("id", sessionId);
 
     if (userId) {
       query = query.eq("user_id", userId);
@@ -51,9 +57,9 @@ export class ChatService {
     if (error) throw error;
   }
 
-  async getMessages(chatId: string): Promise<Message[]> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+  async getMessages(chatId: string, supabase?: DBClient): Promise<Message[]> {
+    const s = this.resolveClient(supabase);
+    const { data, error } = await s
       .from("messages")
       .select("*")
       .eq("chat_id", chatId)
@@ -63,9 +69,9 @@ export class ChatService {
     return data ?? [];
   }
 
-  async saveMessage(message: Omit<Message, "created_at">): Promise<Message> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+  async saveMessage(message: Omit<Message, "created_at">, supabase?: DBClient): Promise<Message> {
+    const s = this.resolveClient(supabase);
+    const { data, error } = await s
       .from("messages")
       .insert({
         id: message.id,
@@ -80,9 +86,9 @@ export class ChatService {
     return data;
   }
 
-  async updateSessionTitle(sessionId: string, title: string): Promise<void> {
-    const supabase = createAdminClient();
-    const { error } = await supabase
+  async updateSessionTitle(sessionId: string, title: string, supabase?: DBClient): Promise<void> {
+    const s = this.resolveClient(supabase);
+    const { error } = await s
       .from("chat_sessions")
       .update({ title })
       .eq("id", sessionId);

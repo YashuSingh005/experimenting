@@ -14,7 +14,7 @@ export function ChatInput() {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
     }
   }, [input]);
 
@@ -33,17 +33,20 @@ export function ChatInput() {
   };
 
   return (
-    <div className="border-t border-white/5 bg-gradient-to-t from-black via-black to-transparent px-4 pb-4 pt-2">
-      <div className="mx-auto max-w-3xl">
-        <div className="glass flex items-end gap-2 rounded-2xl border border-white/10 p-2 transition-all focus-within:border-primary/50">
+    <div className="border-t border-border bg-gradient-to-t from-black via-black to-transparent px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
+      <div className="mx-auto md:max-w-3xl">
+        <div className="flex items-end gap-2 rounded-lg border border-border bg-card p-2 transition-all focus-within:border-primary/50">
+          {/* Prompt indicator */}
+          <span className="hidden font-mono text-xs text-muted-foreground sm:inline">$</span>
+
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message YASHU..."
+            placeholder="type a message..."
             rows={1}
-            className="max-h-[200px] min-h-[24px] flex-1 resize-none bg-transparent px-3 py-2 text-sm text-white outline-none placeholder:text-muted-foreground"
+            className="max-h-[120px] min-h-[20px] flex-1 resize-none bg-transparent px-1 py-1 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 font-mono"
             disabled={streaming}
           />
 
@@ -51,23 +54,23 @@ export function ChatInput() {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={stopStreaming}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent text-muted-foreground hover:text-foreground"
             >
-              <Square className="h-4 w-4" />
+              <Square className="h-3.5 w-3.5" />
             </motion.button>
           ) : (
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleSubmit}
               disabled={!input.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white transition-all disabled:opacity-30"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-all disabled:opacity-30"
             >
-              <ArrowUp className="h-4 w-4" />
+              <ArrowUp className="h-3.5 w-3.5" />
             </motion.button>
           )}
         </div>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          YASHU may produce inaccurate information. Verify important facts.
+        <p className="mt-1.5 text-center font-mono text-[10px] text-muted-foreground/50">
+          may produce inaccurate information. verify important facts.
         </p>
       </div>
     </div>

@@ -69,8 +69,8 @@ export default function AdminTerminalPage() {
         </p>
       </motion.div>
 
-      <div className="glass rounded-xl border border-white/5 overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-white/5 bg-black/30 px-4 py-2">
+      <div className="rounded-md border border-border bg-card overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-border bg-card px-4 py-2">
           <Terminal className="h-4 w-4 text-primary" />
           <span className="text-xs text-muted-foreground">
             {process.env.NEXT_PUBLIC_SUPABASE_URL ? "Connected" : "Terminal"}
@@ -114,7 +114,7 @@ export default function AdminTerminalPage() {
           )}
         </div>
 
-        <div className="border-t border-white/5 p-3">
+        <div className="border-t border-border p-3">
           <div className="flex items-center gap-2 rounded-lg bg-black/50 px-3 py-2">
             <span className="text-green-400 text-sm">$</span>
             <input

@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
@@ -15,7 +14,6 @@ import {
   ScrollText,
   Terminal,
   LogOut,
-  Bot,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -51,30 +49,26 @@ export function AdminSidebar() {
       className={cn(
         "flex h-full flex-col",
         collapsed ? "w-16" : "w-64",
-        "transition-all duration-300",
+        "transition-all duration-200",
       )}
     >
       {/* Logo */}
       <div
         className={cn(
-          "flex h-16 items-center border-b border-white/5 px-4",
+          "flex h-14 items-center border-b border-border px-4",
           collapsed ? "justify-center" : "justify-between",
         )}
       >
         {!collapsed && (
           <Link href="/admin" className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-primary" />
-            <span className="font-bold text-white">YASHU</span>
-          </Link>
-        )}
-        {collapsed && (
-          <Link href="/admin">
-            <Bot className="h-6 w-6 text-primary" />
+            <span className="font-mono text-xs text-muted-foreground">
+              ~/admin
+            </span>
           </Link>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden rounded-lg p-1.5 text-muted-foreground hover:bg-white/5 lg:block"
+          className="hidden rounded-md p-1.5 text-muted-foreground hover:bg-accent lg:block"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -85,7 +79,7 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
         {sidebarLinks.map((link) => {
           const isActive =
             pathname === link.href ||
@@ -95,20 +89,24 @@ export function AdminSidebar() {
               key={link.href}
               href={link.href}
               className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-white",
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 collapsed && "justify-center px-2",
               )}
               onClick={() => setMobileOpen(false)}
             >
-              <link.icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{link.label}</span>}
+              <link.icon className="h-4 w-4 shrink-0" />
+              {!collapsed && (
+                <span className="font-mono text-xs tracking-tight">
+                  {link.label}
+                </span>
+              )}
               {isActive && (
                 <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 rounded-lg bg-primary/5"
+                  layoutId="admin-active-tab"
+                  className="absolute inset-0 rounded-md bg-primary/5"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />
               )}
@@ -118,16 +116,18 @@ export function AdminSidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="border-t border-white/5 p-3">
+      <div className="border-t border-border p-2">
         <button
           onClick={handleLogout}
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-white/5 hover:text-red-400",
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-accent hover:text-red-400",
             collapsed && "justify-center px-2",
           )}
         >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && (
+            <span className="font-mono text-xs">logout</span>
+          )}
         </button>
       </div>
     </div>
@@ -135,22 +135,22 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile toggle button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-50 rounded-lg border border-white/10 bg-black p-2 text-white lg:hidden"
+        className="fixed left-3 top-3 z-50 rounded-md border border-border bg-black p-2 text-muted-foreground hover:text-foreground lg:hidden"
       >
         {mobileOpen ? (
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         ) : (
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         )}
       </button>
 
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 hidden h-screen border-r border-white/5 bg-black/95 backdrop-blur-xl lg:block",
+          "fixed left-0 top-0 z-40 hidden h-screen border-r border-border bg-black lg:block",
         )}
       >
         {sidebarContent}
@@ -164,14 +164,16 @@ export function AdminSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/70 lg:hidden"
               onClick={() => setMobileOpen(false)}
             />
             <motion.aside
-              initial={{ x: -300 }}
+              initial={{ x: -256 }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="fixed left-0 top-0 z-50 h-screen w-64 border-r border-white/5 bg-black lg:hidden"
+              exit={{ x: -256 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed left-0 top-0 z-50 h-screen w-64 border-r border-border bg-black lg:hidden"
             >
               {sidebarContent}
             </motion.aside>
