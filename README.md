@@ -1,195 +1,158 @@
-# 🤖 OpenClaw
-
 <div align="center">
-
-### *An experimental AI chat application built for learning modern AI engineering.*
-
-![Status](https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge)
-![Node.js](https://img.shields.io/badge/Node.js-20+-green?style=for-the-badge\&logo=node.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge\&logo=typescript)
-![Express](https://img.shields.io/badge/Express.js-black?style=for-the-badge\&logo=express)
-![NVIDIA](https://img.shields.io/badge/NVIDIA-NIM-76B900?style=for-the-badge\&logo=nvidia)
-
----
-
-### 🚀 Learning • Experimenting • Building
-
+  <br />
+  <a href="#">
+    <img src="public/icons/icon-512x512.png" alt="Yashu" width="120" height="120" style="border-radius: 12px;">
+  </a>
+  <br />
+  <br />
+  <h1>Yashu</h1>
+  <p><strong>A simple AI assistant for engineering work</strong></p>
+  <br />
+  <p>
+    <img src="https://img.shields.io/badge/Next.js-14.2-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js 14.2">
+    <img src="https://img.shields.io/badge/PWA-Enabled-8A2BE2?style=flat-square&logo=pwa&logoColor=white" alt="PWA">
+    <img src="https://img.shields.io/badge/Supabase-Auth-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase">
+    <img src="https://img.shields.io/badge/Tailwind-v3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+    <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript">
+  </p>
+  <br />
 </div>
 
 ---
 
-# 📖 About
+## ✨ Features
 
-OpenClaw is my personal AI engineering playground.
-
-The goal of this repository is **not** to build a production chatbot immediately, but to understand how modern AI applications work under the hood.
-
-I'm building every feature from scratch while learning:
-
-* AI API integration
-* Streaming responses
-* Chat interfaces
-* Backend development
-* Agent architecture
-* Memory systems
-
-Every commit represents another step in my AI engineering journey.
+- **AI Chat** — Conversational interface powered by OpenRouter + AI SDK
+- **Admin Panel** — Manage chats, files, users, logs, settings, terminal
+- **Supabase Auth** — Email/password authentication with SSR
+- **PWA** — Installable on Android/iOS, offline fallback, auto-update with user control
+- **Dark Theme** — Near-black (#0A0A0A) UI with indigo accent, responsive down to mobile
 
 ---
 
-# ✨ Current Features
+## 📱 Installing as a PWA
 
-* ✅ AI Chat using NVIDIA NIM
-* ✅ TypeScript + Express backend
-* ✅ Streaming responses
-* ✅ Frontend chat interface
-* ✅ Environment variable support
-* ✅ Modular project structure
-* ✅ Conversation memory (experimental)
+### Android (Chrome)
+1. Open the app in Chrome
+2. Tap the **Install App** button at the bottom of the screen
+3. Confirm the install dialog
 
----
+### iOS (Safari)
+1. Open the app in Safari
+2. Tap the **Share** button
+3. Scroll down and tap **Add to Home Screen**
 
-# 🛠 Tech Stack
-
-| Technology | Purpose           |
-| ---------- | ----------------- |
-| TypeScript | Backend language  |
-| Node.js    | Runtime           |
-| Express    | API server        |
-| NVIDIA NIM | AI inference      |
-| HTML       | Frontend          |
-| CSS        | Styling           |
-| JavaScript | Client-side logic |
+> The install tip appears automatically on iOS devices. Dismiss it with ✕.
 
 ---
 
-# 📂 Project Structure
-
-```text
-OpenClaw/
-│
-├── public/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-│
-├── index.ts
-├── server.ts
-├── package.json
-├── tsconfig.json
-└── .env
-```
-
----
-
-# 🚀 Getting Started
-
-## Clone the repository
+## 🚀 Getting Started
 
 ```bash
-git clone <your-repository-url>
-```
-
-## Install dependencies
-
-```bash
+# Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your Supabase credentials and OpenRouter API key
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm run start
 ```
 
-## Configure environment variables
+### Environment Variables
 
-Create a `.env` file.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key |
+| `JWT_SECRET` | JWT signing secret |
+| `OPENROUTER_API_KEY` | OpenRouter API key for AI |
+| `ADMIN_EMAIL` | Admin user email |
 
-```env
-NVIDIA_API_KEY=YOUR_API_KEY
+---
+
+## 📁 Project Structure
+
+```
+src/
+├── app/                  # Next.js App Router pages
+│   ├── admin/            # Admin dashboard & management
+│   ├── api/              # API routes (chat, auth, admin, etc.)
+│   ├── chat/             # Chat interface
+│   ├── login/            # Authentication
+│   ├── offline/          # Offline fallback page
+│   └── register/         # User registration
+├── components/
+│   ├── auth/             # Login/register forms
+│   ├── chat/             # Chat input, sidebar, messages
+│   ├── layout/           # Admin sidebar
+│   └── ui/               # shadcn/ui base components
+├── hooks/                # use-auth, useServiceWorkerUpdate
+├── lib/                  # Supabase clients, AI bridge, utils
+├── middleware/            # Auth & admin middleware
+├── services/             # Chat, file, log, settings, etc.
+├── styles/               # Global CSS with theme variables
+└── types/                # TypeScript type definitions
 ```
 
-## Run the server
+---
 
-```bash
-npx tsx server.ts
-```
+## 🔄 PWA Update Flow
 
-Open:
+1. A new version is deployed to production
+2. The service worker downloads the update in the background
+3. A **"New version available"** banner appears at the bottom of the screen
+4. The user clicks **Update** to activate the new version
+5. The page reloads with the latest code — no manual cache clearing needed
 
-```text
-http://localhost:3000
-```
+> Skip-waiting is disabled by default. Updates are user-initiated, never silent.
 
 ---
 
-# 🎯 Learning Goals
+## 🎨 Theme
 
-This project is helping me understand:
+| Token | Value | Description |
+|---|---|---|
+| `--background` | `0 0% 4%` | Near-black (#0A0A0A) |
+| `--foreground` | `0 0% 88%` | Light gray text |
+| `--primary` | `239 84% 67%` | Indigo accent |
+| `--border` | `0 0% 11%` | Subtle borders |
+| `--muted` | `0 0% 8%` | Muted backgrounds |
+| `--radius` | `0.5rem` | Component rounding |
 
-* AI API integration
-* Streaming architecture
-* Prompt engineering
-* Context and memory
-* AI agents
-* Backend APIs
-* Full-stack development
-* Clean project architecture
-
----
-
-# 📅 Roadmap
-
-### Completed
-
-* [x] Basic AI chat
-* [x] Streaming responses
-* [x] Express backend
-* [x] Frontend integration
-* [x] Experimental memory
-
-### Coming Next
-
-* [ ] Chat history
-* [ ] Markdown rendering
-* [ ] Code syntax highlighting
-* [ ] File upload
-* [ ] PDF chat
-* [ ] Tool calling
-* [ ] AI Agents
-* [ ] Authentication
-* [ ] MongoDB integration
-* [ ] Multi-agent workflows
+Font: **Inter** (headings & body) with **JetBrains Mono** (code).
 
 ---
 
-# 📸 Preview
+## 🔧 Replacing Placeholder Assets
 
-> Screenshots and demos will be added as the project evolves.
+| File | Replace with |
+|---|---|
+| `public/logo.png` | Your app logo (then uncomment `<Image>` in `src/components/Logo.tsx:11`) |
+| `public/icons/icon-192x192.png` | PWA icon 192×192 (PNG) |
+| `public/icons/icon-512x512.png` | PWA icon 512×512 (PNG) |
+
+Maintain the same filenames for zero config changes.
 
 ---
 
-# 🤝 Contributions
+## 📄 License
 
-This is primarily a learning project, but suggestions, ideas, and constructive feedback are always welcome.
-
----
-
-# ⭐ Why this project?
-
-I believe the best way to learn AI engineering is by building real applications instead of only watching tutorials.
-
-OpenClaw is my place to experiment, make mistakes, improve, and document that journey.
+MIT
 
 ---
 
 <div align="center">
-
-### Thanks for visiting! ⭐
-
-If you find this project interesting, consider giving it a star.
-
+  <br />
+  <sub>Built with Next.js · Supabase · Tailwind CSS · shadcn/ui</sub>
+  <br />
+  <br />
 </div>
-
----
-
-## 👨‍💻 Author
-
-**Yashu Singh**
-
-Engineering Student | AI Engineering Learner | Open Source Enthusiast
