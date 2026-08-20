@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import toast from "react-hot-toast";
 import { generateId } from "@/lib/utils";
 
@@ -22,19 +22,29 @@ interface ChatContextType {
   currentChatId: string | null;
   messages: Message[];
   streaming: boolean;
-  setSessions: (sessions: ChatSession[]) => void;
+  streamingContent: string;
   setCurrentChatId: (id: string | null) => void;
   setMessages: (messages: Message[]) => void;
-  addMessage: (msg: Message) => void;
-  appendToLastMessage: (content: string) => void;
   sendMessage: (content: string) => Promise<void>;
   stopStreaming: () => void;
-  deleteChat: (id: string) => Promise<void>;
+  deleteChat: (id: string) => void;
   newChat: () => void;
-  streamingContent: string;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
+
+const SESSIONS_KEY = "yashu.sessions";
+const messagesKey = (id: string) => `yashu.messages.${id}`;
+
+function loadJSON<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -44,21 +54,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [streamingContent, setStreamingContent] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
-  const addMessage = useCallback((msg: Message) => {
-    setMessages((prev) => [...prev, msg]);
+  useEffect(() => {
+    const stored = loadJSON<ChatSession[]>(SESSIONS_KEY, []);
+    setSessions(stored);
+    if (stored.length > 0) {
+      const id = stored[0].id;
+      setCurrentChatId(id);
+      setMessages(loadJSON<Message[]>(messagesKey(id), []));
+    }
   }, []);
 
-  const appendToLastMessage = useCallback((content: string) => {
-    setMessages((prev) => {
-      if (prev.length === 0) return prev;
-      const last = prev[prev.length - 1];
-      if (last.role !== "assistant") return prev;
-      return [
-        ...prev.slice(0, -1),
-        { ...last, content: last.content + content },
-      ];
-    });
+  const persistSessions = useCallback((next: ChatSession[]) => {
+    setSessions(next);
+    window.localStorage.setItem(SESSIONS_KEY, JSON.stringify(next));
   }, []);
+
+  const persistMessages = useCallback((id: string, next: Message[]) => {
+    if (id) window.localStorage.setItem(messagesKey(id), JSON.stringify(next));
+  }, []);
+
+  const appendToLastMessage = useCallback(
+    (id: string, content: string) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (!last || last.role !== "assistant") return prev;
+        const next = [
+          ...prev.slice(0, -1),
+          { ...last, content: last.content + content },
+        ];
+        persistMessages(id, next);
+        return next;
+      });
+    },
+    [persistMessages],
+  );
 
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort();
@@ -72,34 +101,48 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const abortController = new AbortController();
       abortRef.current = abortController;
 
+      const chatId = currentChatId ?? generateId();
       const userMsg: Message = {
         id: generateId(),
         role: "user",
         content,
         createdAt: new Date().toISOString(),
       };
-
-      addMessage(userMsg);
-      setStreaming(true);
-      setStreamingContent("");
-
-      const assistantId = generateId();
       const assistantMsg: Message = {
-        id: assistantId,
+        id: generateId(),
         role: "assistant",
         content: "",
         createdAt: new Date().toISOString(),
       };
-      addMessage(assistantMsg);
+
+      const nextMessages = [...messages, userMsg, assistantMsg];
+      setMessages(nextMessages);
+      persistMessages(chatId, nextMessages);
+
+      if (!currentChatId) {
+        const session: ChatSession = {
+          id: chatId,
+          title: content.slice(0, 60),
+          created_at: new Date().toISOString(),
+        };
+        setCurrentChatId(chatId);
+        persistSessions([session, ...sessions]);
+      }
+
+      setStreaming(true);
+      setStreamingContent("");
+
+      const history = nextMessages
+        .slice(0, -1)
+        .filter((m) => m.content.trim())
+        .slice(-24)
+        .map((m) => ({ role: m.role, content: m.content }));
 
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: content,
-            chatId: currentChatId,
-          }),
+          body: JSON.stringify({ message: content, history, chatId }),
           signal: abortController.signal,
         });
 
@@ -127,17 +170,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             try {
               const data = JSON.parse(line.slice(6));
               if (data.type === "text") {
-                appendToLastMessage(data.content);
                 setStreamingContent((prev) => prev + data.content);
-              } else if (data.type === "done") {
-                if (data.chatId && !currentChatId) {
-                  setCurrentChatId(data.chatId);
-                  const res2 = await fetch("/api/history");
-                  if (res2.ok) {
-                    const json = await res2.json();
-                    setSessions(json.sessions ?? []);
-                  }
-                }
+                appendToLastMessage(chatId, data.content);
               } else if (data.type === "error") {
                 console.error("Stream error:", data.content);
                 toast.error(data.content || "An error occurred during streaming");
@@ -155,30 +189,30 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       } finally {
         setStreaming(false);
         setStreamingContent("");
+        const finalMessages = loadJSON<Message[]>(messagesKey(chatId), []);
+        if (finalMessages.length === 0) persistMessages(chatId, messages);
       }
     },
-    [currentChatId, streaming, addMessage, appendToLastMessage],
+    [currentChatId, streaming, messages, sessions, appendToLastMessage, persistMessages, persistSessions],
   );
 
   const deleteChat = useCallback(
-    async (id: string) => {
-      await fetch(`/api/history?chatId=${id}`, { method: "DELETE" });
+    (id: string) => {
+      window.localStorage.removeItem(messagesKey(id));
+      const next = sessions.filter((s) => s.id !== id);
+      persistSessions(next);
       if (currentChatId === id) {
         setCurrentChatId(null);
         setMessages([]);
       }
-      const res = await fetch("/api/history");
-      if (res.ok) {
-        const json = await res.json();
-        setSessions(json.sessions ?? []);
-      }
     },
-    [currentChatId],
+    [sessions, currentChatId, persistSessions],
   );
 
   const newChat = useCallback(() => {
     setCurrentChatId(null);
     setMessages([]);
+    setStreamingContent("");
   }, []);
 
   return (
@@ -189,11 +223,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         messages,
         streaming,
         streamingContent,
-        setSessions,
         setCurrentChatId,
         setMessages,
-        addMessage,
-        appendToLastMessage,
         sendMessage,
         stopStreaming,
         deleteChat,

@@ -58,9 +58,29 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(
+        ellipse 80% 50% at 50% -10%,
+        hsl(239 84% 67% / 0.08),
+        transparent
+      ),
+      radial-gradient(ellipse 60% 40% at 90% 110%, hsl(239 84% 67% / 0.05), transparent);
+    background-attachment: fixed;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overscroll-behavior: none;
+  }
+
+  /* iOS safe areas for phones */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
 
@@ -84,6 +104,43 @@
   @keyframes typingBounce {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
     30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* drifting aurora blobs */
+  @keyframes blobFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    33%  { transform: translate(40px, -30px) scale(1.15); }
+    66%  { transform: translate(-30px, 25px) scale(0.95); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+  .animate-blob {
+    animation: blobFloat 14s ease-in-out infinite;
+  }
+  .animate-blob-delayed {
+    animation: blobFloat 18s ease-in-out -6s infinite reverse;
+  }
+  .animate-blob-slow {
+    animation: blobFloat 24s ease-in-out -12s infinite;
+  }
+
+  /* shimmer sweep for user bubbles */
+  @keyframes bubbleShimmer {
+    0%   { transform: translateX(-120%); }
+    100% { transform: translateX(220%); }
+  }
+  .bubble-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(
+      105deg,
+      transparent,
+      rgba(255, 255, 255, 0.09),
+      transparent
+    );
+    animation: bubbleShimmer 3.5s ease-in-out infinite;
+    pointer-events: none;
   }
 
   @keyframes fadeSlideUp {
@@ -112,9 +169,52 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-blob-delayed,
+  .animate-blob-slow,
+  .bubble-shimmer::after,
+  .typing-dot {
+    animation: none !important;
+  }
+}
+
 .hljs {
   background: transparent !important;
 }
+
+/* Syntax highlighting theme (dark) for code blocks */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag { color: #c678dd; }
+.hljs-string,
+.hljs-attr,
+.hljs-template-variable,
+.hljs-regexp { color: #98c379; }
+.hljs-title,
+.hljs-title.function_,
+.hljs-section,
+.hljs-symbol { color: #61afef; }
+.hljs-title.class_,
+.hljs-type,
+.hljs-built_in,
+.hljs-number { color: #d19a66; }
+.hljs-comment,
+.hljs-quote { color: #5c6370; font-style: italic; }
+.hljs-variable,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-selector-pseudo { color: #e06c75; }
+.hljs-params,
+.hljs-property { color: #abb2bf; }
+.hljs-meta,
+.hljs-meta .hljs-keyword { color: #e06c75; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: bold; }
+.hljs-addition { color: #98c379; }
+.hljs-deletion { color: #e06c75; }
 
 pre {
   background: hsl(0 0% 3%) !important;

@@ -13,7 +13,19 @@ program
 program
   .command("wakeup")
   .description("Show the banner and pick cli or telegram mode")
+  .allowExcessArguments(true)
   .action(async () => {
-    await runWakeup()
+    await runWakeup();
   });
+
+// No subcommand given (or a bare phrase like `HI-ITS-YASHU wakeup lets go`)
+// -> still wake up the agent.
+const ARGS = process.argv.slice(2);
+
+if (ARGS.length === 0) {
+  await runWakeup();
+} else if (ARGS[0]?.toLowerCase() === "wakeup") {
+  await runWakeup();
+} else {
   await program.parseAsync(process.argv);
+}

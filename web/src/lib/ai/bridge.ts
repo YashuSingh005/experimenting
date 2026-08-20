@@ -1,8 +1,5 @@
 import { streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { settingsService } from "@/services/settings-service";
-import type { AISettings } from "@/types";
-import { createReadOnlyTools, createAdminTools } from "./tools";
 
 function createProvider() {
   return createOpenRouter({
@@ -10,48 +7,32 @@ function createProvider() {
   });
 }
 
-function getModel(provider: ReturnType<typeof createProvider>, modelName: string, settings: AISettings) {
-  return provider.chat(modelName, {
-    temperature: settings.temperature,
-    topP: settings.top_p,
-    maxTokens: settings.max_tokens,
-  });
-}
-
 export interface StreamCallbacks {
   onText: (chunk: string) => void;
-  onToolCall?: (toolName: string, input: unknown) => void;
   onFinish?: () => void;
   onError?: (error: Error) => void;
 }
 
+const SYSTEM_PROMPT =
+  process.env.YASHU_SYSTEM_PROMPT ||
+  "You are Yashu, a helpful AI engineering assistant. You respond in clean markdown. Be concise, practical, and direct. You help with coding, debugging, learning, and engineering work.";
+
 export async function streamAIResponse(
   messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
-  userRole: "admin" | "user",
   callbacks: StreamCallbacks,
 ): Promise<void> {
   const provider = createProvider();
-  const settings: AISettings = await settingsService.getSettings();
+  const modelName = process.env.OPENROUTER_DEFAULT_MODEL || "openai/gpt-4o-mini";
 
-  const tools =
-    userRole === "admin" ? createAdminTools() : createReadOnlyTools();
-
-  const systemPrompt =
-    settings.system_prompt ||
-    "You are a helpful AI assistant. Respond in markdown format.";
-
-  const model = getModel(provider, settings.model_name, settings);
+  const model = provider.chat(modelName);
 
   const { textStream } = await streamText({
     model,
-    system: systemPrompt,
+    system: SYSTEM_PROMPT,
     messages,
-    tools: Object.keys(tools).length > 0 ? tools : undefined,
-    onStepFinish: ({ toolCalls }) => {
-      for (const tc of toolCalls) {
-        callbacks.onToolCall?.(String(tc.toolName), tc.input);
-      }
-    },
+    temperature: 0.7,
+    topP: 0.9,
+    maxOutputTokens: 4096,
   });
 
   try {
