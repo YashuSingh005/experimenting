@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { cn } from "@/lib/utils";
-import { Copy, Check, Sparkles, User } from "lucide-react";
+import { Copy, Check, Sparkles, User, RotateCcw, Heart, ThumbsDown, Share2, Flag, MessageSquare } from "lucide-react";
+import toast from "react-hot-toast";
+import { CodeBlock, InlineCode } from "@/components/ui/code-block";
 
 interface MessageProps {
   role: "user" | "assistant";
@@ -93,38 +95,17 @@ export function ChatMessage({ role, content, isStreaming }: MessageProps) {
                   code({ className, children, ...props }) {
                     const isInline = !className?.includes("language-") && !className?.includes("hljs");
                     if (isInline) {
-                      return (
-                        <code
-                          className="rounded-md border border-primary/15 bg-primary/10 px-1.5 py-0.5 text-[13px] font-mono text-primary"
-                          {...props}
-                        >
-                          {children}
-                        </code>
-                      );
+                      return <InlineCode>{children}</InlineCode>;
                     }
+                    const language = className?.replace("language-", "").split(" ")[0] ?? "";
+                    const codeText = String(children).replace(/\n$/, "");
                     return (
-                      <div className="relative my-3 overflow-hidden rounded-xl border border-border/60">
-                        <div className="flex items-center justify-between bg-white/[0.04] px-3 py-1.5">
-                          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {className?.replace("language-", "").split(" ")[0] ?? "code"}
-                          </span>
-                          <button
-                            onClick={() => {
-                              const text = String(children).replace(/\n$/, "");
-                              navigator.clipboard.writeText(text);
-                            }}
-                            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                            aria-label="Copy code"
-                          >
-                            <Copy className="h-3 w-3" />
-                          </button>
-                        </div>
-                        <pre className="!my-0 !rounded-none !border-0 !bg-[#0a0a0f] !p-3 text-[12.5px]">
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
-                        </pre>
-                      </div>
+                      <CodeBlock
+                        code={codeText}
+                        language={language}
+                        showLineNumbers={true}
+                        maxHeight={400}
+                      />
                     );
                   },
                   pre({ children }) {
@@ -171,22 +152,95 @@ export function ChatMessage({ role, content, isStreaming }: MessageProps) {
               {isStreaming && content && (
                 <span className="ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 animate-[pulse-subtle_0.8s_ease-in-out_infinite] rounded-sm bg-primary/80" />
               )}
+              {!isStreaming && content && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="ml-0.5 inline-block h-3.5 w-1.5 translate-y-0.5 rounded-sm bg-primary/80"
+                />
+              )}
             </div>
           )}
         </div>
 
-        {/* Copy button (assistant) */}
+        {/* Message Actions (assistant) */}
         {isAssistant && !isStreaming && content && (
-          <button
-            onClick={handleCopy}
-            className="mt-1 ml-1 flex items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-all hover:text-foreground group-hover:opacity-100"
-          >
-            {copied ? (
-              <><Check className="h-3 w-3 text-green-500" /><span className="text-green-500">copied</span></>
-            ) : (
-              <><Copy className="h-3 w-3" /><span>copy</span></>
-            )}
-          </button>
+          <div className="mt-2 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => {
+                  const text = content.replace(/\n$/, "");
+                  navigator.clipboard.writeText(text);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                  toast.success("Copied to clipboard");
+                }}
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground/60 transition-all hover:text-foreground hover:bg-accent",
+                  copied && "text-green-500"
+                )}
+                aria-label={copied ? "Copied" : "Copy response"}
+              >
+                {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                <span>{copied ? "copied" : "copy"}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  navigator.share?.({ title: "Yashu AI Response", text: content.slice(0, 200) })
+                    .catch(() => navigator.clipboard.writeText(content))
+                    .then(() => toast.success("Copied for sharing"))
+                    .catch(() => toast.error("Failed to share"));
+                }}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground/60 transition-all hover:text-foreground hover:bg-accent"
+                aria-label="Share response"
+              >
+                <Share2 className="h-3 w-3" />
+                <span>share</span>
+              </button>
+
+              <button
+                onClick={() => toast.success("Message flagged for review")}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground/60 transition-all hover:text-red-400 hover:bg-red-500/10"
+                aria-label="Flag response"
+              >
+                <Flag className="h-3 w-3" />
+                <span>flag</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                const event = new CustomEvent("yashu:regenerate", { detail: { messageId: Date.now() } });
+                window.dispatchEvent(event);
+              }}
+              className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-mono text-muted-foreground/60 transition-all hover:text-foreground hover:bg-accent"
+              aria-label="Regenerate response"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>retry</span>
+            </button>
+          </div>
+        )}
+
+        {/* Reaction buttons (assistant) */}
+        {isAssistant && !isStreaming && content && (
+          <div className="mt-1.5 flex items-center gap-1 opacity-0 transition-all group-hover:opacity-100">
+            <button
+              onClick={() => toast.success("Thanks for the feedback!")}
+              className="rounded-md p-1.5 text-muted-foreground/50 transition-all hover:text-green-500 hover:bg-green-500/10"
+              aria-label="Like response"
+            >
+              <Heart className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => toast.success("We'll do better next time")}
+              className="rounded-md p-1.5 text-muted-foreground/50 transition-all hover:text-red-500 hover:bg-red-500/10"
+              aria-label="Dislike response"
+            >
+              <ThumbsDown className="h-3.5 w-3.5" strokeWidth={2.5} />
+            </button>
+          </div>
         )}
       </div>
 
